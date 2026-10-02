@@ -1,0 +1,18 @@
+# 새 직무군 템플릿. 파일명 = family_id.yml (예: finance.yml). enabled: false로 시작해 골든셋 통과 후 켠다.
+# 사람인 일일 예산(sources.yml saramin_api.daily_request_budget)은 모든 직무군이 나눠 쓴다.
+# 직무군 하나에 검색어 5~10개 → 하루 약 5~20회 호출. 켜기 전에 예산 합계를 확인할 것.
+family_id: finance
+label: "재무·회계"
+enabled: false
+obsidian_tag: job/finance
+saramin_queries:
+  - { job_mid_cd: TBD, note: "사람인 직무코드표에서 확인" }
+  - { keywords: "재무" }
+  - { keywords: "회계" }
+  - { keywords: "IR" }
+fields:                 # 하위 분야 (리포트·필터용)
+  FP&A:       { label: "재무기획",  include: ["FP&A", "재무기획", "경영계획"] }
+  ACCOUNTING: { label: "회계·결산", include: ["회계", "결산", "IFRS"] }
+  TAX:        { label: "세무",      include: ["세무", "법인세"] }
+exclude_rules:
+  - { id: F1, when: "회계사무소 수습·고객사 기장 영업", decision: EXCLUDED }

@@ -12,7 +12,7 @@ Obsidian `HR 채용공고 모음` 폴더로 내려받으면 채용 트렌드(워
 | [docs/REPO_AND_SKILLS.md](docs/REPO_AND_SKILLS.md) | 사용할 오픈소스 레포와 스킬 적용 맵 |
 | [docs/BUILD_PROMPTS.md](docs/BUILD_PROMPTS.md) | Claude Code·Codex용 단계별 구현 프롬프트 |
 | [AGENTS.md](AGENTS.md) | 코딩 에이전트 규칙(등록 지점·완료 기준·함정·현실 점검) |
-| `config/` | 출처 레지스트리, HR 분류 체계, 역량·자격 사전(초안) |
+| `config/` | 출처 레지스트리, 직무군별 분류(`job_families/`), 사용자 추가 기업(`watchlist_custom.yml`), 역량·자격 사전(초안) |
 | `docs/drafts/daily.yml` | GitHub Actions 워크플로 초안(Phase 4에서 활성화) |
 
 수집 원칙:

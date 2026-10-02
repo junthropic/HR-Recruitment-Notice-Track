@@ -13,7 +13,7 @@
 # 구조
 
 ```
-config/            출처·분류·사전·회사연결 설정 (사람이 승인하는 데이터)
+config/            출처·직무군(job_families/)·사전·회사연결·사용자 추가 기업 설정 (사람이 승인하는 데이터)
 data/              수집 결과. append-only, 사람 손으로 수정 금지(검토 결정은 review 경유)
 reports/           생성물. 직접 수정 금지, 생성 명령: uv run hrwatch report
 src/hrwatch/
@@ -25,6 +25,7 @@ src/hrwatch/
   classify/        HR 분류 규칙 → (선택) LLM 판별
   extract/         요구역량·자격·우대 추출, PII 마스킹
   store/           JSONL append, index, run log
+  enrich/          기업 지표(국민연금·DART), 월·분기 실행
   report/          일일·주간 리포트, Issue 본문
 tools/sync_obsidian.py  PC 전용. 레포 읽기 → 볼트 쓰기
 .github/workflows/daily.yml
@@ -78,12 +79,28 @@ tools/sync_obsidian.py  PC 전용. 레포 읽기 → 볼트 쓰기
 7. `docs/CHANGELOG.md`
 (선택) 새 출처가 제외 대상이면 `.claude/settings.json` deny 목록과 `.claude/hooks/block_domains.py`에 도메인 추가
 
-## 새 HR 분야 또는 분류 규칙 — 5곳
-1. `config/hr_taxonomy.yml`
-2. `src/hrwatch/classify/rules.py`(키워드가 아니라 설정을 읽게 할 것)
-3. `tests/golden/hr_classification.jsonl`: 포함 2건 + 근접 오답 2건 이상
-4. `tools/sync_obsidian.py`의 태그 목록(`hr-job/<분야>`)
-5. `src/hrwatch/report/weekly.py`의 분야 순서
+## 새 직무군(HR 외 직무) — 5곳
+1. `config/job_families/<family_id>.yml`: `_template.yml`을 복사하고 `enabled: false`로 시작한다
+2. `config/sources.yml` saramin_api 예산 합계를 확인한다(켜진 직무군 예상 호출 합 ≤ `daily_request_budget`, 한도의 30% 이하)
+3. `tests/golden/<family_id>_classification.jsonl`: 하위 분야마다 포함 2건 + 근접 오답 2건 이상
+4. 골든셋을 통과하면 `enabled: true`로 바꾼다. 분류 코드는 직무군 파일을 읽으므로 수정하지 않는다
+5. `docs/CHANGELOG.md`
+
+## 기존 직무군의 하위 분야·분류 규칙 변경 — 3곳
+1. `config/job_families/<family_id>.yml`의 `fields`·`exclude_rules`
+2. `tests/golden/<family_id>_classification.jsonl`: 포함 2건 + 근접 오답 2건 이상
+3. `src/hrwatch/report/weekly.py`의 분야 순서(설정에서 읽도록 구현했다면 생략)
+
+## 감시 기업 추가·삭제 — 3곳 (반드시 PR, 사람 승인)
+1. `config/watchlist_custom.yml`: 정식 법인명, 별칭, 공식 도메인, families, scan_mode, reason, added_at. 삭제는 `active: false`로만
+2. `per_company`를 쓰면 30곳 이하인지, 사람인 예산 합계가 넘지 않는지 확인한다
+3. (선택) 공식 채용사이트를 수집하려면 "새 수집 출처" 7곳 절차를 따른다
+
+## 새 기업 지표 출처 — 4곳
+1. `docs/COMPLIANCE.md` 레지스트리
+2. `config/sources.yml`: `kind: enrichment`, `schedule`
+3. `src/hrwatch/enrich/<id>.py` + 회사 매칭 테스트(사업자번호·법인명·동명 법인)
+4. 결과 표시: Issue 지표 한 줄, Obsidian `기업/` 노트 템플릿
 
 ## 새 역량·자격 용어 — 2곳
 1. `config/competency_lexicon.yml`(정규형 + 동의어)
@@ -118,6 +135,7 @@ tools/sync_obsidian.py  PC 전용. 레포 읽기 → 볼트 쓰기
 - **cron 정시 지연**: GitHub 예약 실행은 매시 정각 부하로 늦어지거나 누락될 수 있다. 그래서 `:05`에 걸고, 실제 시작 시각을 기록한다. (발견 2026-10-02)
 - **해외 IP**: Actions 러너는 해외에 있다. 국내 사이트가 해외 IP를 막으면 응답 200에 차단 페이지가 올 수 있다. 차단 문구 검사를 둔다. (발견 2026-10-02)
 - **도메인 차단 훅의 부작용**: `.claude/hooks/block_domains.py`는 Bash 명령 문자열에 제외 도메인이 들어 있으면 막는다. 문서에 URL을 쓸 때는 Bash(sed·heredoc) 대신 Edit/Write 도구를 쓴다. (발견 2026-10-02)
+- **사람인 API는 진행 중 공고만**: 마감된 공고는 조회되지 않는다(FAQ). 과거 공고를 다시 받으려고 하지 말고, 처음 본 시점의 레코드를 보존한다. (발견 2026-10-02)
 - **robots 허용 ≠ 약관 허용**: 리멤버는 robots가 `/job/`을 허용하지만 약관이 자동 수집을 금지한다. 출처를 켤 때는 둘 다 확인한다. (발견 2026-10-02)
 
 # 현실 점검
@@ -138,4 +156,5 @@ tools/sync_obsidian.py  PC 전용. 레포 읽기 → 볼트 쓰기
 - [ ] 같은 공고를 두 번 실행해도 중복 줄이 생기지 않는가
 - [ ] 마감일·경력 조건을 지어내지 않았는가
 - [ ] Obsidian 동기화가 `my_status`와 `## 내 메모`를 덮어쓰지 않는가
-- [ ] 등록 지점 목록의 해당 항목(출처 7곳 / 분야 5곳 / 용어 2곳)을 모두 수정했는가
+- [ ] 기업 지표에 해석 문장("이직이 잦다" 등) 없이 수치·기준월·출처만 실었는가
+- [ ] 등록 지점 목록의 해당 항목(출처 7곳 / 직무군 5곳 / 분야 3곳 / 기업 3곳 / 지표 4곳 / 용어 2곳)을 모두 수정했는가

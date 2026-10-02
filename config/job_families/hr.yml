@@ -1,4 +1,19 @@
-# HR 직무 분류 (블루프린트 5절 기반, 초안 2026-10-02)
+# 직무군: HR (블루프린트 5절 기반, 초안 2026-10-02)
+# 직무군 파일 1개 = 판별 규칙 + 사람인 검색어 + 리포트 설정. 새 직무군은 _template.yml을 복사해 만든다.
+family_id: hr
+label: "HR(인사)"
+enabled: true
+obsidian_tag: job/hr
+saramin_queries:          # 역방향 매칭용: 오늘 게시된 이 직무군 공고 전체를 가져와 감시목록과 대조
+  - { job_mid_cd: TBD_HR, note: "사람인 직무코드표에서 '인사·HR' 코드 확인(Phase 0)" }
+  - { keywords: "인사" }
+  - { keywords: "HR" }
+  - { keywords: "채용담당" }
+  - { keywords: "노무" }
+  - { keywords: "HRD" }
+  - { keywords: "HRBP" }
+  - { keywords: "조직문화" }
+  - { keywords: "보상" }
 # 판정 순서: 직무코드 → 제목 → 담당업무/자격요건 본문. 키워드 단독으로 확정하지 않는 분야는 require_context 사용.
 fields:
   TA:           { label: "채용 / TA",              include: ["채용", "리크루팅", "Recruiting", "Talent Acquisition", "채용담당", "채용기획", "채용운영", "TA"] }

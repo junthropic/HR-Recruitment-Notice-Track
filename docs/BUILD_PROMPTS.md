@@ -142,7 +142,7 @@ Phase 2를 해라.
 Phase 3을 해라.
 
 1. classify/rules.py
-   - config/hr_taxonomy.yml을 읽어 INCLUDED/EXCLUDED/REVIEW, hr_field, hr_evidence(원문 200자 이하)를 반환한다.
+   - config/job_families/hr.yml을 읽어(다른 직무군 파일도 같은 코드로 처리되게 일반화) INCLUDED/EXCLUDED/REVIEW, hr_field, hr_evidence(원문 200자 이하)를 반환한다.
    - 우선순위: 직무코드 > 제목 > 본문.
    - exclude_rules X1~X6을 적용한다.
 
@@ -302,3 +302,56 @@ Phase 7을 해라. hrwatch report weekly --week 2026-W41
 ```
 
 **완료 기준:** 4주 실데이터로 리포트를 생성한다. Top 20 항목 5개를 원문과 대조해 사람이 확인한다.
+
+---
+
+## Phase 8 — 기업 지표(국민연금·DART)
+
+```
+Phase 8을 해라. 전제: COMPLIANCE 레지스트리에서 nps_workplace_api, dart_api가 ALLOWED_API다.
+
+1. src/hrwatch/enrich/nps.py
+   - 공공데이터포털 국민연금 가입 사업장 API를 호출한다.
+   - 회사별로 사업장명·사업자번호를 매칭한다.
+   - 복수 사업장은 합산하고, 사업장 목록을 남긴다.
+   - 매칭이 애매하면 REVIEW로 보낸다.
+
+2. src/hrwatch/enrich/dart.py
+   - corpCode.xml로 고유번호를 매칭한다.
+   - empSttus(사업보고서 11011, 반기 11012)를 호출한다.
+   - 정기보고서가 없으면 "공시 없음"으로 기록한다.
+
+3. 저장: data/company_metrics/{nps,dart}/
+   - 기준월·기준연도, 출처 URL, 수집 시각을 함께 저장한다.
+
+4. 파생 지표(코드 계산): 6개월 순증, 월평균 퇴사율, 평균 근속, 1인 평균 급여.
+
+5. 표시
+   - 일일 Issue와 공고 노트에 지표 한 줄을 붙인다.
+   - Obsidian 기업/<회사>.md를 만든다.
+   - 해석 문장은 금지한다.
+
+6. 워크플로: .github/workflows/enrich-monthly.yml
+   - cron '35 10 3 * *' = 매월 3일 19:35 KST
+   - DART는 분기 첫 달에만 실행한다.
+
+테스트: 동명 법인, 사업자번호 일부 마스킹, 공시 없음, API 실패(UNDETERMINED).
+```
+
+**완료 기준:**
+- 275개 중 매칭 성공·REVIEW·실패 수와 사유 표를 만든다.
+- 사람이 5개 회사의 수치를 원 데이터와 대조한다.
+
+## Phase 9 — 직무군·기업 확장 (필요할 때)
+
+```
+<직무군 추가> config/job_families/_template.yml을 복사해 <family_id>.yml을 만들어라.
+- 하위 분야·검색어 초안과 골든셋 초안(하위 분야마다 포함 2 + 근접 오답 2)을 만든다.
+- 사람인 예산 합계를 계산해 보여준다.
+- 내가 골든셋을 확정하면 테스트하고, 통과하면 enabled: true로 바꾼다.
+
+<기업 추가> "<회사명>"을 감시 기업에 추가해라.
+- 정식 법인명·별칭·공식 도메인·DART 고유번호를 확인한다. 동명 법인은 후보를 보여준다.
+- watchlist_custom.yml 변경을 PR로 올린다.
+- scan_mode는 내가 말하지 않으면 reverse_match로 둔다.
+```

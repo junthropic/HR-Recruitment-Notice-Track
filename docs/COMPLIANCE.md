@@ -9,15 +9,18 @@
 
 | 출처 | 상태 | 근거(요약) | 확인일 | 다음 행동 |
 |---|---|---|---|---|
-| 사람인 오픈API | `PENDING_KEY` | 이용신청 후 승인을 받아야 키가 나온다. 하루 최대 500(guide/info는 "500회", caution은 "500건"). 요청당 `count` 최대 110. `published`/`published_min`으로 당일 공고를 조회할 수 있다. 응답에 본문은 없다 | 2026-10-02 | 키 신청. 승인 메일의 이용조건을 이 표에 옮겨 적기 |
+| 사람인 오픈API | `PENDING_KEY` | 이용신청 후 승인을 받아야 키가 나온다. 이용요금·과금 안내는 공식 페이지(guide, info, caution, help)에서 찾지 못했다. 한도를 넘으면 호출이 거절되는 것으로 가정한다. 진행 중인 공고만 조회되고 마감 공고는 조회되지 않는다(FAQ). 하루 최대 500(guide/info는 "500회", caution은 "500건"). 요청당 `count` 최대 110. `published`/`published_min`으로 당일 공고를 조회할 수 있다. 응답에 본문은 없다 | 2026-10-02 | 키 신청. 승인 메일의 이용조건을 이 표에 옮겨 적기 |
 | 고용24 채용정보 API | `PENDING_ELIGIBILITY` | "고용 24 기업회원 전용". `regDate=D-0`(오늘), `busino`(사업자번호) 지원. 호출 한도는 공식 문서에서 미확인 | 2026-10-02 | 사업자가 있으면 신청 |
 | 원티드 OpenAPI | `PENDING_ELIGIBILITY` | 신청서에 사업자번호·회사명·서비스 URL 필수. 한도·저장 조건 미확인 | 2026-10-02 | D-3 결정 후 |
+| 국민연금 가입 사업장 API(공공데이터포털 3046071) | `PENDING_KEY` | 공고가 아니라 회사 지표다. 제공 항목: 사업장명, 사업자등록번호, 가입자 수, 신규취득자 수, 상실가입자 수. 이용허락범위 제한 없음(출처 표시). 개발계정 하루 10,000회 | 2026-10-02 | 공공데이터포털 활용신청 |
+| OpenDART 직원 현황 API | `PENDING_KEY` | 금융감독원 약관 "원칙적으로 무료". 개인용·기업용 신청 가능. 호출 한도는 홈페이지 게시값을 따른다(미확인). 저작권은 금융감독원에 있고, 재배포 조항은 없다 | 2026-10-02 | 인증키 신청 |
 | 삼성 채용 samsungcareers.com | `UNCHECKED` | robots·약관 미확인 | — | Phase 6 |
 | LG 채용 careers.lg.com | `UNCHECKED` | 같음 | — | Phase 6 |
 | HD현대 recruit.hd.com | `UNCHECKED` | 동적 렌더링. robots·약관 미확인 | — | Phase 6 |
 | 한국항공우주산업 koreaaero.recruiter.co.kr | `UNCHECKED` | 채용 솔루션 호스팅. 솔루션사 약관도 함께 확인 | — | Phase 6 |
 | 잡코리아 | `EXCLUDED` | 공식 API는 공공기관·학교 대상. 약관 제18조④ "얻은 정보를 회사의 사전동의 없이 복사, 복제…" 금지. 잡코리아 v. 사람인 판결(서울고법 2016나2019365, DB권 침해 인정). robots.txt가 Scrapy UA 전면 차단 | 2026-10-02 | — |
 | 리멤버 / 리멤버 커리어 | `EXCLUDED` | 서비스 이용약관 제13조①24호: 사전 허락 없이 "자동화된 수단(매크로…봇, 스파이더, 스크래퍼 등)"으로 게시물 수집 금지. 일반 검색엔진 인덱싱만 예외. 제23조①: 경고·일시정지·계약해지 | 2026-10-02 | 수동 경로만(4절) |
+| 잡플래닛(기업후기) | `EXCLUDED` | 약관 페이지(/welcome/terms)마저 robots.txt가 자동 접근을 막아 원문을 확인하지 못했다. 사용자 작성 리뷰는 저작물·개인 의견이고, 열람에 로그인이 필요한 구조로 알려져 있다(미확인). 후기는 국민연금·DART 지표로 대체한다 | 2026-10-02 | 수동 열람만 |
 | 블라인드 | `EXCLUDED` | 블라인드 하이어는 2025년에 신규 등록·지원 접수 기능 중단(2025-03-30 보도). 약관 원문과 robots.txt는 미확인(403·바이너리 응답) | 2026-10-02 | — |
 | 원티드 웹 | `EXCLUDED` | 개인회원 약관 제19조 7호(2023-11-23본): 자동화 수단 수집, IP 변경·CAPTCHA 우회 금지. 웹이 아니라 OpenAPI만 검토 | 2026-10-02 | — |
 | 사람인 웹 | `EXCLUDED` | API가 있으므로 웹은 쓰지 않음. robots.txt가 공고 상세 `/zf_user/recruit/view/` 등을 Disallow | 2026-10-02 | — |
@@ -108,4 +111,9 @@
 - GitHub 예약 워크플로 지연: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
 - GitHub 60일 비활성화: https://docs.github.com/actions/managing-workflow-runs/disabling-and-enabling-a-workflow
 - GitHub Actions 과금: https://docs.github.com/en/billing/concepts/product-billing/github-actions
+- 사람인 API FAQ: https://oapi.saramin.co.kr/help
+- 국민연금 가입 사업장 API: https://www.data.go.kr/data/3046071/openapi.do
+- OpenDART 직원 현황 API: https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS002&apiId=2019011
+- OpenDART 이용약관: https://opendart.fss.or.kr/intro/terms.do
+- 잡플래닛 약관(자동 접근 차단됨): https://www.jobplanet.co.kr/welcome/terms
 - Crawlee robots.txt 준수 예제: https://crawlee.dev/python/docs/examples/respect-robots-txt-file

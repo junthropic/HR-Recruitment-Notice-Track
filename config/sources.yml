@@ -17,19 +17,11 @@ sources:
     daily_request_budget: 50       # 공식 표기 500(회/건 불일치) → 10%로 보수 운용
     max_items_per_request: 110
     window_param: published_min    # 수집 창 시작(KST) — 마지막 성공 실행 이후
-    queries:                       # 역방향 매칭: 오늘 게시된 HR 공고 전체 → 감시목록 대조
-      - { job_mid_cd: TBD_HR, note: "사람인 직무코드표에서 '인사·HR' 코드 확인(Phase 0)" }
-      - { keywords: "인사" }
-      - { keywords: "HR" }
-      - { keywords: "채용담당" }
-      - { keywords: "노무" }
-      - { keywords: "HRD" }
-      - { keywords: "HRBP" }
-      - { keywords: "조직문화" }
-      - { keywords: "보상" }
+    queries_from: config/job_families/*.yml   # 켜진 직무군의 saramin_queries + watchlist_custom의 per_company 검색
     provides: { list: true, detail_body: false, posted_at: true, deadline: true }
     terms_checked_at: 2026-10-02
     terms_urls: [https://oapi.saramin.co.kr/caution, https://oapi.saramin.co.kr/guide/info]
+    note: "진행 중인 공고만 조회 가능(마감 공고 조회 불가, FAQ). 과금 안내 없음 — 한도 초과 시 호출 거절로 가정"
 
   - id: work24_api
     kind: api
@@ -46,6 +38,31 @@ sources:
     kind: api
     status: PENDING_ELIGIBILITY    # 신청서 사업자번호 필수
     enabled: false
+    terms_checked_at: 2026-10-02
+
+  # 기업 지표(후기 대체). 공고가 아니라 회사 단위 수치. 일일 수집과 분리해 월 1회 실행
+  - id: nps_workplace_api
+    kind: enrichment
+    status: PENDING_KEY            # 공공데이터포털 활용신청(자동승인) 후 ALLOWED_API
+    enabled: false
+    base_url: https://www.data.go.kr/data/3046071/openapi.do   # 엔드포인트는 활용신청 후 명세에서 확정
+    secret_env: DATA_GO_KR_SERVICE_KEY
+    daily_request_budget: 600      # 개발계정 1일 10,000회. 275+사용자추가 기업 × 2회 수준
+    schedule: monthly
+    provides: { workplace_name: true, business_no: partial_check, members: true, new_hires: true, leavers: true }
+    license: "이용허락범위 제한 없음(출처표시)"
+    terms_checked_at: 2026-10-02
+
+  - id: dart_api
+    kind: enrichment
+    status: PENDING_KEY            # OpenDART 인증키(개인 발급 가능, 무료) 후 ALLOWED_API
+    enabled: false
+    base_url: https://opendart.fss.or.kr/api/empSttus.json
+    secret_env: OPENDART_API_KEY
+    daily_request_budget: 400      # 공식 한도는 OpenDART 홈페이지 게시값 확인 후 조정
+    schedule: quarterly            # 사업보고서(11011)·반기(11012) 기준
+    provides: { employees: true, contract_workers: true, avg_tenure_years: true, avg_salary: true }
+    coverage_note: "정기보고서 제출 회사만(상장사·일부 비상장). 나머지는 '공시 없음'으로 표시"
     terms_checked_at: 2026-10-02
 
   # 공식 채용사이트: robots·약관 확인 전까지 UNCHECKED (Phase 6에서 1곳씩)

@@ -1,0 +1,17 @@
+# 사용자가 직접 추가한 감시 기업 (매출 기준 275개 목록과 별개)
+# 추가 방법: Claude에게 "○○ 감시 기업에 추가해줘" → 정식 명칭 확인 → 이 파일 수정 PR → 사용자 승인 후 병합
+# scan_mode:
+#   reverse_match  — 직무군별 '오늘 공고 전체'에서 이름으로 대조 (추가 호출 없음, 기본값)
+#   per_company    — 회사명으로 매일 별도 검색해 '모든 직무' 수집 (회사당 하루 1~3회 호출, 최대 30곳)
+companies: []
+# 예시:
+# - name: "주식회사 예시"            # 법인 정식 명칭
+#   aliases: ["예시", "Example Corp"]
+#   official_domain: example.co.kr
+#   careers_url: https://careers.example.co.kr/   # 공식 채용사이트 수집은 COMPLIANCE 확인 후 별도 어댑터
+#   business_no: ""                 # 사업자등록번호(있으면 국민연금·고용24 매칭 정확도 상승)
+#   dart_corp_code: ""              # OpenDART 고유번호(상장·공시대상만)
+#   families: [hr]                  # 이 회사에서 볼 직무군. [all]이면 모든 직무(per_company 필요)
+#   scan_mode: reverse_match
+#   reason: "이직 관심 기업"
+#   added_at: 2026-10-02

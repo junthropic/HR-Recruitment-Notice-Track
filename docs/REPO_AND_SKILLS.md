@@ -45,6 +45,10 @@
 - **본문 추출**: trafilatura를 골랐다. 대안은 kepano/defuddle(JS, Obsidian Web Clipper 엔진)이다. 파이프라인이 Python이라 trafilatura로 정했다.
 - **알림**: GitHub Issue를 기본으로 쓴다. ntfy와 apprise 중에서는 ntfy를 골랐다. 하나면 충분하다.
 
+**기업 지표(Phase 8)용**
+- OpenDART 호출은 httpx(`hrwatch.net.client`)로 직접 한다. 엔드포인트가 2개뿐이라 라이브러리가 필요 없다.
+- 대화 중에 회사 공시를 물어볼 때는 chrisryugj/korean-dart-mcp(카탈로그 Korean Picks)를 Claude에 연결하면 편하다. 수집 파이프라인에는 넣지 않는다.
+
 **넣지 않는 것과 이유**
 - RSSHub(⚠AGPL): 잡사이트 경로가 결국 해당 사이트를 스크래핑한다. 약관 회피 경로가 된다.
 - EasySpider, Skyvern, browser-use, Firecrawl, Apify Actor: 약관 확인 없이 쓰기 쉬운 범용 스크래퍼다. 이 규모에는 과하다.
