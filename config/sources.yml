@@ -1,0 +1,64 @@
+# 출처 레지스트리 (초안 2026-10-02). status 설명은 docs/COMPLIANCE.md 1절.
+# 코드 규칙: status가 ALLOWED_API 또는 ALLOWED_PUBLIC이고 enabled: true인 출처만 호출한다.
+defaults:
+  user_agent: "HRRecruitmentNoticeTrack/0.1 (+https://github.com/junthropic/HR-Recruitment-Notice-Track; personal, non-commercial)"
+  min_interval_sec: 3
+  max_retries: 2
+  timeout_sec: 20
+  stop_domain_on: [403, 429]
+
+sources:
+  - id: saramin_api
+    kind: api
+    status: PENDING_KEY            # 키 승인 후 ALLOWED_API
+    enabled: false
+    base_url: https://oapi.saramin.co.kr/job-search
+    secret_env: SARAMIN_ACCESS_KEY
+    daily_request_budget: 50       # 공식 표기 500(회/건 불일치) → 10%로 보수 운용
+    max_items_per_request: 110
+    window_param: published_min    # 수집 창 시작(KST) — 마지막 성공 실행 이후
+    queries:                       # 역방향 매칭: 오늘 게시된 HR 공고 전체 → 감시목록 대조
+      - { job_mid_cd: TBD_HR, note: "사람인 직무코드표에서 '인사·HR' 코드 확인(Phase 0)" }
+      - { keywords: "인사" }
+      - { keywords: "HR" }
+      - { keywords: "채용담당" }
+      - { keywords: "노무" }
+      - { keywords: "HRD" }
+      - { keywords: "HRBP" }
+      - { keywords: "조직문화" }
+      - { keywords: "보상" }
+    provides: { list: true, detail_body: false, posted_at: true, deadline: true }
+    terms_checked_at: 2026-10-02
+    terms_urls: [https://oapi.saramin.co.kr/caution, https://oapi.saramin.co.kr/guide/info]
+
+  - id: work24_api
+    kind: api
+    status: PENDING_ELIGIBILITY    # 고용24 기업회원 전용
+    enabled: false
+    base_url: https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210L01.do
+    secret_env: WORK24_AUTH_KEY
+    daily_request_budget: 30
+    params: { callTp: L, regDate: D-0, display: 100 }
+    provides: { list: true, detail_body: true, posted_at: true, deadline: true, busino_filter: true }
+    terms_checked_at: 2026-10-02
+
+  - id: wanted_openapi
+    kind: api
+    status: PENDING_ELIGIBILITY    # 신청서 사업자번호 필수
+    enabled: false
+    terms_checked_at: 2026-10-02
+
+  # 공식 채용사이트: robots·약관 확인 전까지 UNCHECKED (Phase 6에서 1곳씩)
+  - { id: samsung_careers, kind: portal, status: UNCHECKED, enabled: false, base_url: https://www.samsungcareers.com/, renderer: http, daily_request_budget: 30 }
+  - { id: lg_careers,      kind: portal, status: UNCHECKED, enabled: false, base_url: https://careers.lg.com/,          renderer: http, daily_request_budget: 30 }
+  - { id: hd_recruit,      kind: portal, status: UNCHECKED, enabled: false, base_url: https://recruit.hd.com/kr/mainLayout, renderer: playwright, daily_request_budget: 30 }
+  - { id: kai_recruiter,   kind: portal, status: UNCHECKED, enabled: false, base_url: https://koreaaero.recruiter.co.kr/career/home, renderer: http, daily_request_budget: 20 }
+
+# 영구 제외 — 코드에서 이 도메인으로 요청하면 net.client가 거부한다
+blocked_domains:
+  - teamblind.com
+  - blindhub.net
+  - rememberapp.co.kr
+  - jobkorea.co.kr
+  - wanted.co.kr          # 웹. OpenAPI(openapi.wanted.jobs)는 별도 검토
+  - www.saramin.co.kr     # 웹. API(oapi.saramin.co.kr)만 사용

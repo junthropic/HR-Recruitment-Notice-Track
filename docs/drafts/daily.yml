@@ -1,0 +1,76 @@
+# 초안 — Phase 4에서 .github/workflows/daily.yml로 옮긴다.
+# (기본 브랜치의 .github/workflows/에 두는 순간 예약 실행이 켜지므로, 코드가 생기기 전에는 여기 둔다)
+# 액션은 커밋 SHA로 고정한다(zizmor). <SHA>는 적용 시점의 릴리스 커밋으로 채운다.
+name: hrwatch-daily
+
+on:
+  schedule:
+    - cron: "5 10 * * *"        # 10:05 UTC = 19:05 KST (정시 혼잡 회피)
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "수집 기준일(KST, YYYY-MM-DD). 비우면 오늘"
+        required: false
+
+concurrency:
+  group: hrwatch-daily
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Asia/Seoul
+      SARAMIN_ACCESS_KEY: ${{ secrets.SARAMIN_ACCESS_KEY }}
+      NOTIFY_USER: junthropic
+    steps:
+      - name: 레포가 public이면 중단
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          vis=$(gh repo view "$GITHUB_REPOSITORY" --json visibility -q .visibility)
+          if [ "$vis" != "PRIVATE" ]; then echo "::error::repo is $vis — data 커밋 금지(docs/COMPLIANCE.md 3절)"; exit 1; fi
+
+      - uses: actions/checkout@<SHA>   # v4
+        with: { persist-credentials: true }
+
+      - uses: astral-sh/setup-uv@<SHA> # v6
+
+      - name: 수집·분류·저장
+        id: run
+        run: |
+          uv sync --frozen
+          uv run hrwatch run --date "${{ inputs.date }}" --summary-json run_summary.json
+          echo "new=$(jq .new_positions run_summary.json)" >> "$GITHUB_OUTPUT"
+          echo "failed=$(jq .failed_sources run_summary.json)" >> "$GITHUB_OUTPUT"
+
+      - name: 시크릿 검사(커밋 전)
+        uses: gitleaks/gitleaks-action@<SHA> # v2
+        env: { GITHUB_TOKEN: "${{ github.token }}" }
+
+      - name: 커밋·푸시
+        run: |
+          git config user.name  "hrwatch-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data reports
+          git diff --cached --quiet && { echo "변경 없음"; exit 0; }
+          git commit -m "$(jq -r .commit_message run_summary.json)"
+          git push
+
+      - name: 알림 Issue (신규 ≥1 또는 출처 실패)
+        if: steps.run.outputs.new != '0' || steps.run.outputs.failed != '0'
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          uv run hrwatch report issue --summary run_summary.json --mention "$NOTIFY_USER" > issue.md
+          gh issue create --title "$(jq -r .issue_title run_summary.json)" --body-file issue.md --label hr-daily
+
+      - name: 7일 지난 알림 Issue 닫기
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          cutoff=$(date -d '7 days ago' +%F)
+          gh issue list --label hr-daily --state open --json number,createdAt \
+            -q ".[] | select(.createdAt < \"$cutoff\") | .number" | xargs -r -n1 gh issue close

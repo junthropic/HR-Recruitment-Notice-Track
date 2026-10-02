@@ -1,0 +1,10 @@
+.env
+.env.*
+*.key
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+data/raw/
+run_summary.json
+issue.md

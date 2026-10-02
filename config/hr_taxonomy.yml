@@ -1,0 +1,21 @@
+# HR 직무 분류 (블루프린트 5절 기반, 초안 2026-10-02)
+# 판정 순서: 직무코드 → 제목 → 담당업무/자격요건 본문. 키워드 단독으로 확정하지 않는 분야는 require_context 사용.
+fields:
+  TA:           { label: "채용 / TA",              include: ["채용", "리크루팅", "Recruiting", "Talent Acquisition", "채용담당", "채용기획", "채용운영", "TA"] }
+  HRM:          { label: "인사 운영 / HRM",        include: ["인사제도", "평가", "승진", "인사관리", "인사운영", "People Operations", "HR Operations", "인사기획"] }
+  CNB:          { label: "보상 / C&B",             include: ["급여", "보상", "복리후생", "Compensation", "Benefits", "C&B", "Total Rewards"] }
+  ER:           { label: "노무 / ER",              include: ["노사관계", "노무", "노동법", "Employee Relations", "ER", "노조"] }
+  HRD:          { label: "교육 / HRD",             include: ["HRD", "인재육성", "Learning & Development", "L&D", "임직원 교육"], require_context: ["임직원", "사내", "구성원", "리더십"] }
+  HRBP:         { label: "HRBP",                  include: ["HRBP", "HR Business Partner", "사업부 인사"] }
+  OD:           { label: "조직개발 / OD",          include: ["조직개발", "Organization Development", "OD", "리더십 개발", "승계", "Talent Management"] }
+  EX:           { label: "조직문화 / EX",          include: ["조직문화", "Employee Experience", "EX", "임직원 경험", "Culture"] }
+  HRIS:         { label: "HRIS / People Analytics", include: ["HRIS", "인사시스템", "People Analytics", "인사 데이터", "SuccessFactors", "Workday"] }
+  GLOBAL_HR:    { label: "Global HR",             include: ["해외 인사", "글로벌 인사", "Global HR", "주재원", "Global Mobility"] }
+
+exclude_rules:       # 블루프린트 5절·10절
+  - { id: X1, when: "교육상품 영업, 외부 고객 강사, 수강생 모집", decision: EXCLUDED }
+  - { id: X2, when: "영업·기타 공고의 '인사담당자에게 문의' 문구만 있음", decision: EXCLUDED }
+  - { id: X3, when: "HR 솔루션 영업·개발", decision: EXCLUDED, flag: HR_INDUSTRY_ROLE }
+  - { id: X4, when: "파견·헤드헌터 공고", decision: EXCLUDED, flag: AGENCY, note: "설정으로 포함 가능, 고용주·고객사 분리 표시" }
+  - { id: X5, when: "'경영지원'·'총무'만 있고 인사 담당업무 미확인", decision: REVIEW }
+  - { id: X6, when: "본문 미확보·이미지 본문 해석 실패", decision: REVIEW }

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "WebFetch(domain:teamblind.com)",
+      "WebFetch(domain:www.teamblind.com)",
+      "WebFetch(domain:kr.teamblind.com)",
+      "WebFetch(domain:blindhub.net)",
+      "WebFetch(domain:rememberapp.co.kr)",
+      "WebFetch(domain:career.rememberapp.co.kr)",
+      "WebFetch(domain:www.jobkorea.co.kr)",
+      "WebFetch(domain:www.wanted.co.kr)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|WebFetch|mcp__.*",
+        "hooks": [
+          { "type": "command", "command": "python .claude/hooks/block_domains.py" }
+        ]
+      }
+    ]
+  }
+}
